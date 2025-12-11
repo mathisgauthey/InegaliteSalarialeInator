@@ -1,0 +1,200 @@
+<div class="w-full max-w-7xl mx-auto p-6 bg-gray-50">
+  <h1 class="text-3xl font-bold mb-6 text-gray-800">Analyse de Répartition Salariale - ESN</h1>
+
+  <!-- Bannière explicative -->
+  <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-6">
+    <h3 class="font-semibold text-blue-800 mb-2">📊 Distribution Log-Normale</h3>
+    <p class="text-sm text-blue-700">
+      Cette courbe utilise une <strong>distribution log-normale</strong> (asymétrique), plus réaliste pour les salaires.
+      Elle montre une concentration de salaires plus faibles et une "queue longue" vers les salaires élevés,
+      ce qui explique pourquoi la moyenne ({{formatNumber(moyenne)}}€) est supérieure à la médiane ({{formatNumber(mediane)}}€).
+    </p>
+  </div>
+
+  <!-- Panneau de contrôle -->
+  <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Paramètres</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Moyenne ESN (€)</label>
+        <input
+          type="number"
+          [(ngModel)]="moyenne"
+          (ngModelChange)="onParameterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Médiane ESN (€)</label>
+        <input
+          type="number"
+          [(ngModel)]="mediane"
+          (ngModelChange)="onParameterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Mon Salaire (€)</label>
+        <input
+          type="number"
+          [(ngModel)]="monSalaire"
+          (ngModelChange)="onParameterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Asymétrie (Skewness)
+          <span class="text-xs text-gray-500 ml-1">(0.2-1.0)</span>
+        </label>
+        <input
+          type="number"
+          step="0.05"
+          min="0.2"
+          max="1"
+          [(ngModel)]="skewness"
+          (ngModelChange)="onParameterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Écart-type
+          <span class="text-xs text-gray-500 ml-1">(0.1-0.8)</span>
+        </label>
+        <input
+          type="number"
+          step="0.05"
+          min="0.1"
+          max="0.8"
+          [(ngModel)]="ecartType"
+          (ngModelChange)="onParameterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+      <div class="flex items-end">
+        <div class="text-xs text-gray-600 bg-gray-50 p-2 rounded w-full">
+          <p class="font-semibold">Moyenne théorique:</p>
+          <p class="text-lg font-bold text-gray-800">{{formatNumber(moyenneTheorique)}}€</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicateurs clés -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+      <p class="text-sm text-gray-600">Mon Salaire</p>
+      <p class="text-2xl font-bold text-red-600">{{formatNumber(monSalaire)}}€</p>
+      <p class="text-xs text-gray-500 mt-1">Percentile: {{monPercentile.toFixed(1)}}%</p>
+    </div>
+    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
+      <p class="text-sm text-gray-600">Médiane ESN</p>
+      <p class="text-2xl font-bold text-blue-600">{{formatNumber(mediane)}}€</p>
+      <p [class]="'text-xs mt-1 font-semibold ' + (parseFloat(ecartMediane) < 0 ? 'text-red-600' : 'text-green-600')">
+        Écart: {{ecartMediane}}%
+      </p>
+    </div>
+    <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
+      <p class="text-sm text-gray-600">Moyenne ESN</p>
+      <p class="text-2xl font-bold text-green-600">{{formatNumber(moyenne)}}€</p>
+      <p [class]="'text-xs mt-1 font-semibold ' + (parseFloat(ecartMoyenne) < 0 ? 'text-red-600' : 'text-green-600')">
+        Écart: {{ecartMoyenne}}%
+      </p>
+    </div>
+    <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg">
+      <p class="text-sm text-gray-600">Position</p>
+      <p class="text-2xl font-bold text-purple-600">{{getPositionText()}}</p>
+      <p class="text-xs text-gray-500 mt-1">
+        {{(100 - monPercentile).toFixed(0)}}% gagnent plus
+      </p>
+    </div>
+  </div>
+
+  <!-- Graphique de distribution -->
+  <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Courbe de Distribution Salariale (Log-Normale)</h2>
+    <app-salary-chart
+      [data]="data"
+      [monSalaire]="monSalaire"
+      [mediane]="mediane"
+      [moyenne]="moyenne"
+      [deciles]="deciles">
+    </app-salary-chart>
+  </div>
+
+  <!-- Tableau des déciles -->
+  <div class="bg-white p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold mb-4 text-gray-700">Tableau des Déciles</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left">Décile</th>
+          <th class="px-4 py-2 text-left">Salaire (€)</th>
+          <th class="px-4 py-2 text-left">Percentile</th>
+          <th class="px-4 py-2 text-left">Écart avec mon salaire</th>
+          <th class="px-4 py-2 text-left">Statut</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let d of deciles" [class]="'border-t ' + (d.valeur <= monSalaire ? 'bg-red-50' : '')">
+          <td class="px-4 py-2 font-semibold">{{d.decile}}</td>
+          <td class="px-4 py-2">{{formatNumber(d.valeur)}}€</td>
+          <td class="px-4 py-2">{{d.percentile}}%</td>
+          <td [class]="'px-4 py-2 font-semibold ' + (d.valeur > monSalaire ? 'text-red-600' : 'text-green-600')">
+            {{d.valeur > monSalaire ? '+' : ''}}{{formatNumber(d.valeur - monSalaire)}}€
+            ({{d.valeur > monSalaire ? '+' : ''}}{{(((d.valeur - monSalaire) / monSalaire) * 100).toFixed(1)}}%)
+          </td>
+          <td class="px-4 py-2">
+            <span *ngIf="d.valeur <= monSalaire" class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">En dessous</span>
+            <span *ngIf="d.valeur > monSalaire" class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Au dessus</span>
+          </td>
+        </tr>
+        <tr class="border-t bg-blue-50 font-semibold">
+          <td class="px-4 py-2">Médiane (D5)</td>
+          <td class="px-4 py-2">{{formatNumber(mediane)}}€</td>
+          <td class="px-4 py-2">50%</td>
+          <td class="px-4 py-2 text-red-600">
+            +{{formatNumber(mediane - monSalaire)}}€ (+{{Math.abs(parseFloat(ecartMediane))}}%)
+          </td>
+          <td class="px-4 py-2">
+            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Référence</span>
+          </td>
+        </tr>
+        <tr class="border-t bg-green-50 font-semibold">
+          <td class="px-4 py-2">Moyenne</td>
+          <td class="px-4 py-2">{{formatNumber(moyenne)}}€</td>
+          <td class="px-4 py-2">~60-65%</td>
+          <td class="px-4 py-2 text-red-600">
+            +{{formatNumber(moyenne - monSalaire)}}€ (+{{Math.abs(parseFloat(ecartMoyenne))}}%)
+          </td>
+          <td class="px-4 py-2">
+            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Tirée vers le haut</span>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Interprétation améliorée -->
+  <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg mt-6">
+    <h3 class="font-semibold text-yellow-800 mb-2">💡 Interprétation</h3>
+    <p class="text-sm text-yellow-700 mb-2">
+      Ton salaire se situe au <strong>{{monPercentile.toFixed(1)}}ème percentile</strong>,
+      ce qui signifie que <strong>{{(100 - monPercentile).toFixed(0)}}% des salariés</strong> de l'ESN
+      gagnent plus que toi.
+    </p>
+    <p class="text-sm text-yellow-700 mb-2">
+      Tu es à <strong>{{Math.abs(parseFloat(ecartMediane))}}% en dessous de la médiane</strong> et à
+      <strong> {{Math.abs(parseFloat(ecartMoyenne))}}% en dessous de la moyenne</strong>.
+    </p>
+    <p class="text-sm text-yellow-700">
+      <strong>⚠️ Point clé :</strong> La moyenne est supérieure à la médiane ({{formatNumber(moyenne)}}€ vs {{formatNumber(mediane)}}€),
+      ce qui prouve que quelques salaires élevés tirent la distribution vers le haut.
+      Tu te situes dans la partie "concentrée" de la courbe, où sont regroupés les salaires les plus faibles.
+    </p>
+  </div>
+</div>
+

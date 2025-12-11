@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Ensure Math.abs is available in template */
+.Math {
+  display: none;
+}
+
