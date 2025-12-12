@@ -131,6 +131,52 @@ $$
 {\displaystyle (\mathrm {e} ^{\sigma ^{2}}\!\!-1)\mathrm {e} ^{2\mu +\sigma ^{2}}}
 $$
 
+## Calcul des déciles
+
+Les déciles sont calculés à partir de la **fonction de répartition cumulative** (CDF) de la loi log-normale.
+
+### Distribution cumulative
+
+La distribution cumulative $F(x)$ représente la probabilité qu'un salaire soit inférieur ou égal à $x$ :
+
+$$
+F(x) = \int_{-\infty}^{x} f(t) \, dt
+$$
+
+En pratique, pour des données discrètes, on calcule :
+
+$$
+F(x_i) = \frac{\sum_{j=1}^{i} f(x_j)}{\sum_{k=1}^{n} f(x_k)} \times 100
+$$
+
+Où :
+- $f(x_j)$ est la densité de probabilité au point $x_j$
+- $n$ est le nombre total de points
+- Le résultat est exprimé en percentile (0-100%)
+
+### Déciles
+
+Le $k$-ième décile $D_k$ est le salaire $x$ tel que :
+
+$$
+F(D_k) = 10k \quad \text{pour } k \in \{1, 2, ..., 9\}
+$$
+
+En d'autres termes :
+- **D1** (1er décile) : 10% des salariés gagnent moins
+- **D5** (5e décile) : correspond à la médiane (50%)
+- **D9** (9e décile) : 90% des salariés gagnent moins
+
+### Rapport interdécile
+
+Un indicateur clé d'inégalité est le **rapport D9/D1** :
+
+$$
+\text{Rapport interdécile} = \frac{D_9}{D_1}
+$$
+
+Plus ce rapport est élevé, plus les inégalités salariales sont importantes.
+
 ## 📄 Licence
 
 MIT
