@@ -1,4 +1,4 @@
-# Inégalité Salariale Inator - Angular 17
+# InegaliteSalarialeInator
 
 ![inegalitesalarialeinator.png](inegalitesalarialeinator.png)
 
