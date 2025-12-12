@@ -90,16 +90,46 @@ L'application utilise les **composants standalone d'Angular 17** :
 
 ## 📊 Formule mathématique
 
-La distribution log-normale est définie par :
+La densité de probabilité d'une [loi log-normale](https://fr.wikipedia.org/wiki/Loi_log-normale) est définie par :
 
-```
-f(x) = (1 / (x * σ * √(2π))) * exp(-((ln(x) - μ)² / (2σ²)))
-```
+$$
+f_{X}(x;\mu ,\sigma ) = \frac{1}{x\sigma \sqrt{2\pi}} \exp\left(-\frac{(\ln x-\mu )^{2}}{2\sigma ^{2}}\right) = \frac{1}{x} f_{Y}(\ln(x);\mu ,\sigma )
+$$
 
 Où :
 - `x` = salaire
-- `μ` = log(médiane)
-- `σ` = skewness × (1 + écart-type)
+- `μ` = éspérance du logarithme des salaires
+- `σ` = écart-type du logarithme des salaires
+
+Mais comme :
+
+$$
+\begin{array}{rcl}
+\text{Médiane} & = & \mathrm{e}^{\mu} \\
+\text{Espérance} & = & \mathrm{e}^{\mu + \sigma^{2}/2}
+\end{array}
+$$
+
+Alors, on obtient immédiatement :
+
+$$
+\begin{cases}
+\mu = \ln(\text{Médiane}) \\[0.5em]
+\sigma = \sqrt{2 \times \ln\left(\dfrac{\text{Moyenne}}{\text{Médiane}}\right)}
+\end{cases}
+$$
+
+Notons que l'asymétrie vaut :
+
+$$
+{\displaystyle (\mathrm {e} ^{\sigma ^{2}}\!\!+2){\sqrt {\mathrm {e} ^{\sigma ^{2}}\!\!-1}}}
+$$
+
+La variance est quant à elle :
+
+$$
+{\displaystyle (\mathrm {e} ^{\sigma ^{2}}\!\!-1)\mathrm {e} ^{2\mu +\sigma ^{2}}}
+$$
 
 ## 📄 Licence
 
