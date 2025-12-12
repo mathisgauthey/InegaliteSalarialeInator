@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import {SalaryChartComponent} from "./salary-chart/salary-chart.component";
 import {FormsModule} from "@angular/forms";
+import {NgForOf, NgIf} from "@angular/common";
 
 interface DistributionDataPoint {
   salaire: number;
@@ -16,7 +17,7 @@ interface Decile {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [SalaryChartComponent, FormsModule],
+  imports: [SalaryChartComponent, FormsModule, NgForOf, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
