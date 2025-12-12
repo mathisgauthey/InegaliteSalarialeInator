@@ -26,6 +26,7 @@ export class AppComponent implements OnInit {
   ecartType: number = 0;
   variance: number = 0;
   asymetrie: number = 0;
+  rapportInterdecile: number = 0;
 
   Math = Math;
   protected readonly parseFloat = parseFloat;
@@ -46,6 +47,46 @@ export class AppComponent implements OnInit {
     if (this.monPercentile < 25) return 'Très bas';
     if (this.monPercentile < 50) return 'En-dessous';
     return 'Au-dessus';
+  }
+
+  getSortedTableRows(): any[] {
+    const rows = [
+      ...this.deciles.map(d => ({
+        label: d.decile,
+        valeur: d.valeur,
+        percentile: d.percentile,
+        isMonSalaire: false,
+        isMediane: false,
+        isMoyenne: false
+      })),
+      {
+        label: 'Mon Salaire',
+        valeur: this.monSalaire,
+        percentile: this.monPercentile,
+        isMonSalaire: true,
+        isMediane: false,
+        isMoyenne: false
+      },
+      {
+        label: 'D5 (Médiane)',
+        valeur: this.mediane,
+        percentile: 50,
+        isMonSalaire: false,
+        isMediane: true,
+        isMoyenne: false
+      },
+      {
+        label: 'Moyenne',
+        valeur: this.moyenne,
+        percentile: 0, // Will be calculated for display
+        isMonSalaire: false,
+        isMediane: false,
+        isMoyenne: true
+      }
+    ];
+
+    // Sort by salary value
+    return rows.sort((a, b) => a.valeur - b.valeur);
   }
 
   private updateDistribution() {
@@ -115,6 +156,13 @@ export class AppComponent implements OnInit {
 
     this.ecartMediane = ((this.monSalaire - this.mediane) / this.mediane * 100).toFixed(1);
     this.ecartMoyenne = ((this.monSalaire - this.moyenne) / this.moyenne * 100).toFixed(1);
+
+    // Calculate interdecile ratio D9/D1
+    const d9 = this.deciles.find(d => d.decile === 'D9');
+    const d1 = this.deciles.find(d => d.decile === 'D1');
+    if (d9 && d1 && d1.valeur > 0) {
+      this.rapportInterdecile = d9.valeur / d1.valeur;
+    }
   }
 }
 

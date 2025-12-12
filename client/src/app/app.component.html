@@ -103,7 +103,21 @@
 
   <!-- Graphique de distribution -->
   <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-    <h2 class="text-xl font-semibold mb-4 text-gray-700">Courbe de Distribution Salariale (Log-Normale)</h2>
+    <div class="flex justify-between items-start mb-4">
+      <h2 class="text-xl font-semibold text-gray-700">Courbe de Distribution Salariale (Log-Normale)</h2>
+      <div class="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-r-lg">
+        <p class="text-xs text-gray-600 mb-1">Rapport Interdécile (D9/D1)</p>
+        <p class="text-2xl font-bold text-purple-600">{{ formatNumber(rapportInterdecile) }}</p>
+        <p class="text-xs text-gray-500 mt-1">
+          <span *ngIf="rapportInterdecile < 2"
+                class="text-green-600">Faible inégalité</span>
+          <span *ngIf="rapportInterdecile >= 2 && rapportInterdecile < 3"
+                class="text-yellow-600">Inégalité modérée</span>
+          <span *ngIf="rapportInterdecile >= 3"
+                class="text-red-600">Forte inégalité</span>
+        </p>
+      </div>
+    </div>
     <app-salary-chart
       [data]="data"
       [deciles]="deciles"
@@ -128,42 +142,41 @@
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let d of deciles"
-            [class]="'border-t ' + (d.valeur <= monSalaire ? 'bg-red-50' : '')">
-          <td class="px-4 py-2 font-semibold">{{ d.decile }}</td>
-          <td class="px-4 py-2">{{ formatNumber(d.valeur) }}€</td>
-          <td class="px-4 py-2">{{ d.percentile }}%</td>
-          <td [class]="'px-4 py-2 font-semibold ' + (d.valeur > monSalaire ? 'text-red-600' : 'text-green-600')">
-            {{ d.valeur > monSalaire ? '+' : '' }}{{ formatNumber(d.valeur - monSalaire) }}€
-            ({{ d.valeur > monSalaire ? '+' : '' }}{{ (((d.valeur - monSalaire) / monSalaire) * 100).toFixed(1) }}%)
+        <tr *ngFor="let row of getSortedTableRows()"
+            [class]="'border-t ' +
+              (row.isMonSalaire ? 'bg-red-100 font-bold' : '') +
+              (row.isMediane ? 'bg-blue-50 font-semibold' : '') +
+              (row.isMoyenne ? 'bg-blue-50 font-semibold' : '') +
+              (!row.isMonSalaire && !row.isMediane && !row.isMoyenne && row.valeur <= monSalaire ? 'bg-red-50' : '') +
+              (!row.isMonSalaire && !row.isMediane && !row.isMoyenne && row.valeur > monSalaire ? 'bg-green-50' : '')">
+          <td class="px-4 py-2 font-semibold">{{ row.label }}</td>
+          <td class="px-4 py-2">{{ formatNumber(row.valeur) }}€</td>
+          <td class="px-4 py-2">
+            <span *ngIf="!row.isMoyenne">{{ row.percentile.toFixed(1) }}%</span>
+            <span *ngIf="row.isMoyenne">~60-65%</span>
+          </td>
+          <td [class]="'px-4 py-2 font-semibold ' +
+            (row.isMonSalaire ? 'text-gray-500' :
+            (row.valeur > monSalaire ? 'text-red-600' : 'text-green-600'))">
+            <span *ngIf="!row.isMonSalaire">
+              {{ row.valeur > monSalaire ? '+' : '' }}{{ formatNumber(row.valeur - monSalaire) }}€
+              ({{ row.valeur > monSalaire ? '+' : '' }}{{ (((row.valeur - monSalaire) / monSalaire) * 100).toFixed(1) }}
+              %)
+            </span>
+            <span *ngIf="row.isMonSalaire"
+                  class="text-gray-500">—</span>
           </td>
           <td class="px-4 py-2">
-            <span *ngIf="d.valeur <= monSalaire"
+            <span *ngIf="row.isMonSalaire"
+                  class="text-xs bg-red-200 text-red-900 px-2 py-1 rounded font-bold">Ma position</span>
+            <span *ngIf="row.isMediane"
+                  class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Référence</span>
+            <span *ngIf="row.isMoyenne"
+                  class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Référence</span>
+            <span *ngIf="!row.isMonSalaire && !row.isMediane && !row.isMoyenne && row.valeur <= monSalaire"
                   class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">En dessous</span>
-            <span *ngIf="d.valeur > monSalaire"
+            <span *ngIf="!row.isMonSalaire && !row.isMediane && !row.isMoyenne && row.valeur > monSalaire"
                   class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Au dessus</span>
-          </td>
-        </tr>
-        <tr class="border-t bg-blue-50 font-semibold">
-          <td class="px-4 py-2">Médiane (D5)</td>
-          <td class="px-4 py-2">{{ formatNumber(mediane) }}€</td>
-          <td class="px-4 py-2">50%</td>
-          <td class="px-4 py-2 text-red-600">
-            +{{ formatNumber(mediane - monSalaire) }}€ (+{{ Math.abs(parseFloat(ecartMediane)) }}%)
-          </td>
-          <td class="px-4 py-2">
-            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Référence</span>
-          </td>
-        </tr>
-        <tr class="border-t bg-green-50 font-semibold">
-          <td class="px-4 py-2">Moyenne</td>
-          <td class="px-4 py-2">{{ formatNumber(moyenne) }}€</td>
-          <td class="px-4 py-2">~60-65%</td>
-          <td class="px-4 py-2 text-red-600">
-            +{{ formatNumber(moyenne - monSalaire) }}€ (+{{ Math.abs(parseFloat(ecartMoyenne)) }}%)
-          </td>
-          <td class="px-4 py-2">
-            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Tirée vers le haut</span>
           </td>
         </tr>
         </tbody>
