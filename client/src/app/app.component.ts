@@ -13,18 +13,19 @@ import {Decile} from "./_models/decile";
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  moyenne = 0;
-  mediane = 0;
-  monSalaire = 0;
-  skewness = 0;
-  ecartType = 0;
+  moyenne: number = 0;
+  mediane: number = 0;
+  monSalaire: number = 0;
 
   data: DistributionDataPoint[] = [];
   deciles: Decile[] = [];
   monPercentile = 0;
   ecartMediane = '0';
   ecartMoyenne = '0';
-  moyenneTheorique = 0;
+  esperance: number = 0;
+  ecartType: number = 0;
+  variance: number = 0;
+  asymetrie: number = 0;
 
   Math = Math;
   protected readonly parseFloat = parseFloat;
@@ -38,7 +39,7 @@ export class AppComponent implements OnInit {
   }
 
   formatNumber(value: number): string {
-    return value.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+    return value.toLocaleString('fr-FR', {maximumFractionDigits: 3});
   }
 
   getPositionText(): string {
@@ -57,8 +58,10 @@ export class AppComponent implements OnInit {
     const data: DistributionDataPoint[] = [];
 
     // Calcul de mu et sigma pour la distribution log-normale
-    const mu = Math.log(this.mediane);
-    const sigma = Math.sqrt(2 * (Math.log(this.moyenne) - mu));
+    this.esperance = Math.log(this.mediane);
+    this.ecartType = Math.sqrt(2 * (Math.log(this.moyenne) - this.esperance));
+    this.variance = this.ecartType * this.ecartType;
+    this.asymetrie = (Math.exp(this.variance) + 2) * Math.sqrt(Math.exp(this.variance) - 1);
 
     const min = 21621.6 // SMIC annuel brut
     const max = this.mediane * 2.5; // 2.5 fois la médiane, pour couvrir une large gamme de salaires
@@ -66,8 +69,8 @@ export class AppComponent implements OnInit {
 
     for (let salary = min; salary <= max; salary += step) {
       const logSalary = Math.log(salary);
-      const z = (logSalary - mu) / sigma;
-      const density = (1 / (salary * sigma * Math.sqrt(2 * Math.PI))) *
+      const z = (logSalary - this.esperance) / this.ecartType;
+      const density = (1 / (salary * this.ecartType * Math.sqrt(2 * Math.PI))) *
         Math.exp(-0.5 * z * z);
 
       data.push({
@@ -112,9 +115,6 @@ export class AppComponent implements OnInit {
 
     this.ecartMediane = ((this.monSalaire - this.mediane) / this.mediane * 100).toFixed(1);
     this.ecartMoyenne = ((this.monSalaire - this.moyenne) / this.moyenne * 100).toFixed(1);
-
-    this.moyenneTheorique = this.data.reduce((sum, d) => sum + d.salaire * d.densite, 0) /
-      this.data.reduce((sum, d) => sum + d.densite, 0);
   }
 }
 
