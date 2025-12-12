@@ -1,17 +1,7 @@
-import { Component, Input, OnChanges, SimpleChanges, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
-interface DistributionDataPoint {
-  salaire: number;
-  densite: number;
-  cumulative: number;
-}
-
-interface Decile {
-  decile: string;
-  valeur: number;
-  percentile: number;
-}
+import {AfterViewInit, Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {DistributionDataPoint} from "../_models/datapoint";
+import {Decile} from "../_models/decile";
 
 @Component({
   selector: 'app-salary-chart',
@@ -27,7 +17,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
   @Input() moyenne: number = 0;
   @Input() deciles: Decile[] = [];
 
-  @ViewChild('chartCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('chartCanvas', {static: false}) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D;
@@ -50,7 +40,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
     const container = this.canvas.parentElement!;
     this.canvas.width = container.clientWidth;
     this.canvas.height = 400;
-    
+
     // Setup tooltip
     this.tooltip = document.createElement('div');
     this.tooltip.className = 'chart-tooltip';
@@ -75,7 +65,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
 
     const width = this.canvas.width;
     const height = this.canvas.height;
-    const padding = { top: 40, right: 40, bottom: 60, left: 70 };
+    const padding = {top: 40, right: 40, bottom: 60, left: 70};
     const chartWidth = width - padding.left - padding.right;
     const chartHeight = height - padding.top - padding.bottom;
 
@@ -113,7 +103,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
     this.ctx.lineWidth = 2;
     this.ctx.beginPath();
     this.ctx.moveTo(scaleX(this.data[0].salaire), padding.top + chartHeight);
-    
+
     this.data.forEach((point, i) => {
       const x = scaleX(point.salaire);
       const y = scaleY(point.densite);
@@ -123,7 +113,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
         this.ctx.lineTo(x, y);
       }
     });
-    
+
     this.ctx.lineTo(scaleX(this.data[this.data.length - 1].salaire), padding.top + chartHeight);
     this.ctx.closePath();
     this.ctx.fill();
@@ -146,7 +136,7 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
   private drawReferenceLine(x: number, color: string, label: string, lineWidth: number, dashed = false, small = false) {
     this.ctx.strokeStyle = color;
     this.ctx.lineWidth = lineWidth;
-    
+
     if (dashed) {
       this.ctx.setLineDash([5, 5]);
     } else {
@@ -223,17 +213,17 @@ export class SalaryChartComponent implements OnChanges, AfterViewInit {
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    const padding = { top: 40, right: 40, bottom: 60, left: 70 };
+    const padding = {top: 40, right: 40, bottom: 60, left: 70};
     const chartWidth = this.canvas.width - padding.left - padding.right;
 
     if (x >= padding.left && x <= padding.left + chartWidth &&
-        y >= padding.top && y <= padding.top + (this.canvas.height - padding.top - padding.bottom)) {
-      
+      y >= padding.top && y <= padding.top + (this.canvas.height - padding.top - padding.bottom)) {
+
       const minSalaire = this.data[0].salaire;
       const maxSalaire = this.data[this.data.length - 1].salaire;
       const salaire = minSalaire + ((x - padding.left) / chartWidth) * (maxSalaire - minSalaire);
 
-      const closestPoint = this.data.reduce((prev, curr) => 
+      const closestPoint = this.data.reduce((prev, curr) =>
         Math.abs(curr.salaire - salaire) < Math.abs(prev.salaire - salaire) ? curr : prev
       );
 

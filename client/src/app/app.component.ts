@@ -1,19 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {SalaryChartComponent} from "./salary-chart/salary-chart.component";
 import {FormsModule} from "@angular/forms";
 import {NgForOf, NgIf} from "@angular/common";
+import {DistributionDataPoint} from "./_models/datapoint";
+import {Decile} from "./_models/decile";
 
-interface DistributionDataPoint {
-  salaire: number;
-  densite: number;
-  cumulative: number;
-}
-
-interface Decile {
-  decile: string;
-  valeur: number;
-  percentile: number;
-}
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -36,6 +27,7 @@ export class AppComponent implements OnInit {
   moyenneTheorique = 0;
 
   Math = Math;
+  protected readonly parseFloat = parseFloat;
 
   ngOnInit() {
     this.updateDistribution();
@@ -43,6 +35,16 @@ export class AppComponent implements OnInit {
 
   onParameterChange() {
     this.updateDistribution();
+  }
+
+  formatNumber(value: number): string {
+    return value.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+  }
+
+  getPositionText(): string {
+    if (this.monPercentile < 25) return 'Très bas';
+    if (this.monPercentile < 50) return 'En-dessous';
+    return 'Au-dessus';
   }
 
   private updateDistribution() {
@@ -54,14 +56,13 @@ export class AppComponent implements OnInit {
   private generateDistribution(): DistributionDataPoint[] {
     const data: DistributionDataPoint[] = [];
 
-    // Paramètres pour la distribution log-normale ajustée
+    // Calcul de mu et sigma pour la distribution log-normale
     const mu = Math.log(this.mediane);
-    // Combinaison de skewness et ecartType pour plus de contrôle
-    const sigma = this.skewness * (1 + this.ecartType);
+    const sigma = Math.sqrt(2 * (Math.log(this.moyenne) - mu));
 
-    const min = Math.max(20000, this.mediane * 0.5);
-    const max = this.mediane * 2.5;
-    const step = (max - min) / 150;
+    const min = 21621.6 // SMIC annuel brut
+    const max = this.mediane * 2.5; // 2.5 fois la médiane, pour couvrir une large gamme de salaires
+    const step = (max - min) / 100000;
 
     for (let salary = min; salary <= max; salary += step) {
       const logSalary = Math.log(salary);
@@ -71,7 +72,7 @@ export class AppComponent implements OnInit {
 
       data.push({
         salaire: Math.round(salary),
-        densite: density * 1000000,
+        densite: density * 1000000, // Mise à l'échelle pour une meilleure visualisation
         cumulative: 0
       });
     }
@@ -115,17 +116,5 @@ export class AppComponent implements OnInit {
     this.moyenneTheorique = this.data.reduce((sum, d) => sum + d.salaire * d.densite, 0) /
       this.data.reduce((sum, d) => sum + d.densite, 0);
   }
-
-  formatNumber(value: number): string {
-    return value.toLocaleString('fr-FR', { maximumFractionDigits: 0 });
-  }
-
-  getPositionText(): string {
-    if (this.monPercentile < 25) return 'Très bas';
-    if (this.monPercentile < 50) return 'En-dessous';
-    return 'Au-dessus';
-  }
-
-  protected readonly parseFloat = parseFloat;
 }
 
